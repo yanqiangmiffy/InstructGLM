@@ -35,7 +35,7 @@
 
 > 数据集地址：https://github.com/tatsu-lab/stanford_alpaca
 
-### 数据预处理
+### 1.数据预处理
 
 转化alpaca数据集为jsonl,这一步可以执行设置数据转换后格式，比如：
 
@@ -58,7 +58,7 @@ python tokenize_dataset_rows.py \
     --max_seq_length 320
 ```
 
-### 模型训练
+### 2. 模型训练
 
 ## 微调2:BELLE中文指令数据
 
