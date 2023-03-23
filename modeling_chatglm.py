@@ -29,7 +29,7 @@ from transformers.utils import logging
 from transformers.generation.logits_process import LogitsProcessor
 from transformers.generation.utils import LogitsProcessorList, StoppingCriteriaList, GenerationConfig
 
-from .configuration_chatglm import ChatGLMConfig
+from configuration_chatglm import ChatGLMConfig
 
 # flags required to enable jit fusion kernels
 torch._C._jit_set_profiling_mode(False)
