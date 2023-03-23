@@ -5,6 +5,9 @@
 ## 开源指令数据集
 
 - [斯坦福52k英文指令数据](https://github.com/tatsu-lab/stanford_alpaca)
+
+> instruction:52K 条指令中的每一条都是唯一的,答案由text-davinci-003模型生成得到的
+
 - [BELLE项目生成的中文指令数据](https://huggingface.co/datasets/BelleGroup/generated_train_0.5M_CN)
 
 > 生成方式基于种子prompt，调用openai的api生成中文指令
@@ -31,6 +34,31 @@
 ```
 
 > 数据集地址：https://github.com/tatsu-lab/stanford_alpaca
+
+### 数据预处理
+
+转化alpaca数据集为jsonl,这一步可以执行设置数据转换后格式，比如：
+
+```text
+###Instruction:xxx###Input:xxxx###Response:xxx
+```
+
+```shell
+python cover_alpaca2jsonl.py \
+    --data_path data/alpaca_data.json \
+    --save_path data/alpaca_data.jsonl 
+```
+
+对文本进行tokenize,加快训练速度，文本长度可根据运行资源自行设置
+
+```shell
+python tokenize_dataset_rows.py \
+    --jsonl_path data/alpaca_data.jsonl \
+    --save_path data/alpaca \
+    --max_seq_length 320
+```
+
+### 模型训练
 
 ## 微调2:BELLE中文指令数据
 
