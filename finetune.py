@@ -145,7 +145,7 @@ def main():
     model = get_peft_model(model, peft_config)
 
     if finetune_args.is_resume and finetune_args.resume_path:
-        print("load lora pt from :", finetune_args.is_resume, finetune_args.resume_path)
+        print("=====>load lora pt from =====》:", finetune_args.is_resume, finetune_args.resume_path)
         model.load_state_dict(torch.load(finetune_args.resume_path), strict=False)
 
     # load dataset
