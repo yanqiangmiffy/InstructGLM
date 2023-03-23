@@ -21,6 +21,11 @@
 
 > 与原始alpaca数据json格式相同,数据生成的方法是机器翻译和self-instruct
 
+- [人工精调的中文对话数据集](https://github.com/hikariming/alpaca_chinese_dataset)
+>加入除了alpaca之外的其他中文聊天对话
+人工微调，部分并不中文化的问题，我们将重新询问chatgpt或文心一言，重新获取回答并覆盖掉alpaca的回答
+
+
 ## 微调1：alpaca英文指令数据
 
 斯坦福羊驼52k数据，原始数据格式如下：
@@ -200,3 +205,4 @@ python finetune.py \
 - https://guanaco-model.github.io/
 - https://github.com/carbonz0/alpaca-chinese-dataset
 - https://github.com/THUDM/ChatGLM-6B
+- https://huggingface.co/THUDM/chatglm-6b
