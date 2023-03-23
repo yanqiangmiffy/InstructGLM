@@ -60,6 +60,22 @@ python tokenize_dataset_rows.py \
 
 ### 2. 模型训练
 
+```shell
+python finetune.py \
+    --dataset_path data/alpaca \
+    --lora_rank 8 \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 1 \
+    --max_steps 52000 \
+    --save_steps 1000 \
+    --save_total_limit 2 \
+    --learning_rate 2e-5 \
+    --fp16 \
+    --remove_unused_columns false \
+    --logging_steps 50 \
+    --output_dir output
+```
+
 ## 微调2:BELLE中文指令数据
 
 包含543314条由BELLE项目生成的中文指令数据,数据格式如下：
@@ -70,7 +86,78 @@ python tokenize_dataset_rows.py \
 
 > 数据集地址：https://huggingface.co/datasets/BelleGroup/generated_train_0.5M_CN
 
+### 1.数据预处理
+
+转化bell数据集为jsonl
+
+```shell
+
+python cover_alpaca2jsonl.py \
+    --dataset_name BelleGroup/generated_train_0.5M_CN \
+    --save_path data/belle_data.jsonl 
+```
+
+文本长度统计
+
+```text
+count    543314.000000
+mean         83.536944
+std          95.665178
+min           4.000000
+25%          33.000000
+50%          51.000000
+75%          88.000000
+90%         194.000000
+max        4410.000000
+Name: input_len, dtype: float64
+
+count    543314.000000
+mean        121.079030
+std         165.472722
+min           1.000000
+25%          27.000000
+50%          67.000000
+75%         151.000000
+90%         296.000000
+max        9463.000000
+Name: target_len, dtype: float64
+```
+
+分词处理
+
+```shell
+python tokenize_dataset_rows.py \
+    --jsonl_path data/belle_data.jsonl \
+    --save_path data/belle \
+    --max_seq_length 320
+```
+
+### 2. 模型训练
+
+```shell
+python finetune.py \
+    --dataset_path data/belle \
+    --lora_rank 8 \
+    --per_device_train_batch_size 2 \
+    --gradient_accumulation_steps 1 \
+    --max_steps 52000 \
+    --save_steps 1000 \
+    --save_total_limit 2 \
+    --learning_rate 2e-5 \
+    --fp16 \
+    --remove_unused_columns false \
+    --logging_steps 50 \
+    --output_dir output
+```
+
+## 实验环境
+
+- 安装所需要的包：pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+- 显卡：2xA100 80G
+
 ## Reference
+
+> 非常感谢以下作者的无私开源
 
 - https://github.com/mymusise/ChatGLM-Tuning
 - https://huggingface.co/BelleGroup/BELLE-7B-2M
