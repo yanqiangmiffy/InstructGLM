@@ -5,7 +5,6 @@ import copy
 import os
 import warnings
 import re
-
 import torch
 import torch.utils.checkpoint
 import torch.nn.functional as F
@@ -52,7 +51,7 @@ class InvalidScoreLogitsProcessor(LogitsProcessor):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
         if torch.isnan(scores).any() or torch.isinf(scores).any():
             scores.zero_()
-            scores[..., 20005] = 5e4
+            scores[..., 20005] = 1e5
         return scores
 
 
@@ -611,8 +610,8 @@ class ChatGLMPreTrainedModel(PreTrainedModel):
     a simple interface for downloading and loading pretrained models.
     """
 
-    is_parallelizable = False
-    supports_gradient_checkpointing = False
+    is_parallelizable = True
+    supports_gradient_checkpointing = True
     config_class = ChatGLMConfig
     base_model_prefix = "transformer"
     _no_split_modules = ["GLM6BBlock"]
@@ -620,16 +619,18 @@ class ChatGLMPreTrainedModel(PreTrainedModel):
     def __init__(self, *inputs, **kwargs):
         super().__init__(*inputs, **kwargs)
 
-    def _init_weights(self, module: nn.Module):
-        """Initialize the weights."""
+    def _init_weights(self, module):
         return
+
+    def _set_gradient_checkpointing(self, module, value=False):
+        if isinstance(module, (GLMBlock)):
+            module.gradient_checkpointing = value
 
 
 CHATGLM_6B_START_DOCSTRING = r"""
     This model is a PyTorch [torch.nn.Module](https://pytorch.org/docs/stable/nn.html#torch.nn.Module) sub-class.
     Use it as a regular PyTorch Module and refer to the PyTorch documentation for all matter related to general
     usage and behavior.
-
     Parameters:
         config ([`~ChatGLM6BConfig`]): Model configuration class with all the parameters of the model.
             Initializing with a config file does not load the weights associated with the model, only the configuration.
@@ -640,37 +641,28 @@ CHATGLM_6B_INPUTS_DOCSTRING = r"""
     Args:
         input_ids (`torch.LongTensor` of shape `({0})`):
             Indices of input sequence tokens in the vocabulary.
-
             Indices can be obtained using [`ChatGLM6BTokenizer`].
             See [`PreTrainedTokenizer.encode`] and
             [`PreTrainedTokenizer.__call__`] for details.
-
             [What are input IDs?](../glossary#input-ids)
         attention_mask (`torch.FloatTensor` of shape `({0})`, *optional*):
             Mask to avoid performing attention on padding token indices. Mask values selected in `[0, 1]`:
-
             - 1 for tokens that are **not masked**,
             - 0 for tokens that are **masked**.
-
             [What are attention masks?](../glossary#attention-mask)
         token_type_ids (`torch.LongTensor` of shape `({0})`, *optional*):
             Segment token indices to indicate first and second portions of the inputs. Indices are selected in `[0, 1]`:
-
             - 0 corresponds to a *sentence A* token,
             - 1 corresponds to a *sentence B* token.
-
             [What are token type IDs?](../glossary#token-type-ids)
         position_ids (`torch.LongTensor` of shape `({0})`, *optional*):
             Indices of positions of each input sequence tokens in the position embeddings.
             Selected in the range `[0, config.max_position_embeddings - 1]`.
-
             [What are position IDs?](../glossary#position-ids)
         head_mask (`torch.FloatTensor` of shape `(num_heads,)` or `(num_layers, num_heads)`, *optional*):
             Mask to nullify selected heads of the self-attention modules. Mask values selected in `[0, 1]`:
-
             - 1 indicates the head is **not masked**,
             - 0 indicates the head is **masked**.
-
         inputs_embeds (`torch.FloatTensor` of shape `({0}, hidden_size)`, *optional*):
             Optionally, instead of passing `input_ids` you can choose to directly pass an embedded representation.
             This is useful if you want more control over how to convert *input_ids* indices into associated vectors
@@ -692,13 +684,11 @@ CHATGLM_6B_INPUTS_DOCSTRING = r"""
 )
 class ChatGLMModel(ChatGLMPreTrainedModel):
     """
-
     The model can behave as an encoder (with only self-attention) as well
     as a decoder, in which case a layer of cross-attention is added between
     the self-attention layers, following the architecture described in [Attention is
     all you need](https://arxiv.org/abs/1706.03762) by Ashish Vaswani,
     Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin.
-
     To behave as an decoder the model needs to be initialized with the
     `is_decoder` argument of the configuration set to `True`.
     To be used in a Seq2Seq model, the model needs to initialized with both `is_decoder`
@@ -720,6 +710,7 @@ class ChatGLMModel(ChatGLMPreTrainedModel):
         self.inner_hidden_size = config.inner_hidden_size
         self.hidden_size_per_attention_head = self.hidden_size // self.num_attention_heads
         self.position_encoding_2d = config.position_encoding_2d
+        self.model_parallel = True
 
         self.word_embeddings = skip_init(
             torch.nn.Embedding,
@@ -754,8 +745,9 @@ class ChatGLMModel(ChatGLMPreTrainedModel):
     def set_input_embeddings(self, new_embeddings: torch.Tensor):
         self.word_embeddings = new_embeddings
 
-    def get_masks(self, seq, device):
-        context_length = seq.index(self.config.bos_token_id) + 1
+    @staticmethod
+    def get_masks(seq, device):
+        context_length = seq.index(150004) + 1
 
         attention_mask = torch.ones((1, len(seq), len(seq)), device=device)
         attention_mask.tril_()
@@ -766,9 +758,9 @@ class ChatGLMModel(ChatGLMPreTrainedModel):
         return attention_mask
 
     def get_position_ids(self, seq, mask_position, device, gmask=False):
-        context_length = seq.index(self.config.bos_token_id) + 1
+        context_length = len(seq)
         if self.position_encoding_2d:
-            seq_length = seq.index(self.config.bos_token_id)
+            seq_length = seq.index(150004)
             position_ids = torch.arange(context_length, dtype=torch.long, device=device)
             if not gmask:
                 position_ids[seq_length:] = mask_position
@@ -823,7 +815,13 @@ class ChatGLMModel(ChatGLMPreTrainedModel):
 
         if past_key_values is None:
             past_key_values = tuple([None] * len(self.layers))
+
+            MASK, gMASK = 150000, 150001
+            mask_token = MASK if MASK in input_ids else gMASK
+            use_gmask = False if MASK in input_ids else gMASK
             seq = input_ids[0].tolist()
+
+            mask_position = seq.index(mask_token)
 
             if attention_mask is None:
                 attention_mask = self.get_masks(
@@ -832,11 +830,6 @@ class ChatGLMModel(ChatGLMPreTrainedModel):
                 )
 
             if position_ids is None:
-                MASK, gMASK = 150000, 150001
-                mask_token = MASK if MASK in input_ids else gMASK
-                use_gmask = False if MASK in input_ids else gMASK
-
-                mask_position = seq.index(mask_token)
                 position_ids = self.get_position_ids(
                     seq=seq,
                     mask_position=mask_position,
@@ -935,12 +928,12 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
     def get_masks_and_position_ids(self, seq, mask_position, context_length, device, gmask=False):
         attention_mask = torch.ones((1, context_length, context_length), device=device)
         attention_mask.tril_()
-        attention_mask[..., :context_length - 1] = 1
+        attention_mask[..., :mask_position - 1] = 1
         attention_mask.unsqueeze_(1)
         attention_mask = (attention_mask < 0.5).bool()
 
         if self.position_encoding_2d:
-            seq_length = seq.index(self.config.bos_token_id)
+            seq_length = seq.index(150004)
             position_ids = torch.arange(context_length, dtype=torch.long, device=device)
             if not gmask:
                 position_ids[seq_length:] = mask_position
@@ -978,7 +971,7 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
 
         # only last token for input_ids if past is not None
         if past is not None or past_key_values is not None:
-            context_length = seq.index(self.config.bos_token_id)
+            context_length = seq.index(150004)
             last_token = input_ids[:, -1].unsqueeze(-1)
             if self.position_encoding_2d:
                 position_ids = torch.tensor([[[mask_position], [len(seq) - context_length]]], dtype=torch.long,
@@ -1075,7 +1068,6 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
         This function is used to re-order the `past_key_values` cache if [`~PreTrainedModel.beam_search`] or
         [`~PreTrainedModel.beam_sample`] is called. This is required to match `past_key_values` with the correct
         beam_idx at every generation step.
-
         Output shares the same memory storage as `past`.
         """
         return tuple(
@@ -1100,7 +1092,6 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
             response = re.sub(r"([\u4e00-\u9fff])%s" % item[0], r"\1%s" % item[1], response)
             response = re.sub(r"%s([\u4e00-\u9fff])" % item[0], r"%s\1" % item[1], response)
         return response
-
     @torch.no_grad()
     def chat(self, tokenizer, query: str, history: List[Tuple[str, str]] = None, max_length: int = 2048, num_beams=1,
              do_sample=True, top_p=0.7, temperature=0.95, logits_processor=None, **kwargs):
@@ -1123,7 +1114,8 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
         outputs = self.generate(**input_ids, **gen_kwargs)
         outputs = outputs.tolist()[0][len(input_ids["input_ids"][0]):]
         response = tokenizer.decode(outputs)
-        response = self.process_response(response)
+        response = response.strip()
+        response = response.replace("[[训练时间]]", "2023年")
         history = history + [(query, response)]
         return response, history
 
@@ -1254,7 +1246,6 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
             if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, scores):
                 break
             yield input_ids
-
     def quantize(self, bits: int):
         from .quantization import quantize
         self.transformer = quantize(self.transformer, bits)

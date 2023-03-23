@@ -132,7 +132,20 @@ python tokenize_dataset_rows.py \
     --max_seq_length 320
 ```
 
+转换后的数据：
+
+```text
+                                           input_ids  seq_len                                                                                                                   
+0  [20005, 92863, 20012, 20005, 83864, 87784, 871...       20
+1  [20005, 92863, 20012, 20005, 91432, 86523, 885...       80
+2  [20005, 92863, 20012, 104069, 85056, 86334, 89...       61
+3  [20005, 92863, 20012, 91492, 89122, 83866, 852...       24
+4  [20005, 92863, 20012, 20005, 83834, 99899, 927...       24
+```
+
 ### 2. 模型训练
+
+- 基于原始chatglm-6b训练
 
 ```shell
 python finetune.py \
@@ -148,6 +161,26 @@ python finetune.py \
     --remove_unused_columns false \
     --logging_steps 50 \
     --output_dir output
+```
+
+- 基于alpaca的lora继续微调
+
+```shell
+python finetune.py \
+    --dataset_path data/belle \
+    --lora_rank 8 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 1 \
+    --max_steps 1024000 \
+    --save_steps 10000 \
+    --save_total_limit 2 \
+    --learning_rate 2e-5 \
+    --fp16 \
+    --remove_unused_columns false \
+    --logging_steps 50 \
+    --output_dir output/belle \
+    --is_resume True \
+    --resume_path output/alpaca/chatglm-lora.pt
 ```
 
 ## 实验环境
