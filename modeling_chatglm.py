@@ -1,33 +1,32 @@
 """ PyTorch ChatGLM model. """
 
-import math
 import copy
+import math
 import os
-import warnings
 import re
+import warnings
+from typing import Optional, Tuple, Union, List, Callable
 
 import torch
-import torch.utils.checkpoint
 import torch.nn.functional as F
+import torch.utils.checkpoint
 from torch import nn
 from torch.nn import CrossEntropyLoss, LayerNorm
 from torch.nn.utils import skip_init
-from typing import Optional, Tuple, Union, List, Callable
-
-from transformers.utils import (
-    add_code_sample_docstrings,
-    add_start_docstrings,
-    add_start_docstrings_to_model_forward,
-)
+from transformers.generation.logits_process import LogitsProcessor
+from transformers.generation.utils import LogitsProcessorList, StoppingCriteriaList, GenerationConfig
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
     CausalLMOutputWithPast,
     BaseModelOutputWithPastAndCrossAttentions,
 )
 from transformers.modeling_utils import PreTrainedModel
+from transformers.utils import (
+    add_code_sample_docstrings,
+    add_start_docstrings,
+    add_start_docstrings_to_model_forward,
+)
 from transformers.utils import logging
-from transformers.generation.logits_process import LogitsProcessor
-from transformers.generation.utils import LogitsProcessorList, StoppingCriteriaList, GenerationConfig
 
 from configuration_chatglm import ChatGLMConfig
 
@@ -194,7 +193,7 @@ def rotate_half(x):
 def apply_rotary_pos_emb_index(q, k, cos, sin, position_id):
     # position_id: [sq, b], q, k: [sq, b, np, hn], cos: [sq, 1, hn] -> [sq, b, 1, hn]
     cos, sin = F.embedding(position_id, cos.squeeze(1)).unsqueeze(2), \
-        F.embedding(position_id, sin.squeeze(1)).unsqueeze(2)
+               F.embedding(position_id, sin.squeeze(1)).unsqueeze(2)
     q, k = (q * cos) + (rotate_half(q) * sin), (k * cos) + (rotate_half(k) * sin)
     return q, k
 
@@ -413,7 +412,7 @@ class SelfAttention(torch.nn.Module):
             k1, k2 = key_layer.chunk(2, dim=(key_layer.ndim - 1))
             cos, sin = self.rotary_emb(q1, seq_len=position_ids.max() + 1)
             position_ids, block_position_ids = position_ids[:, 0, :].transpose(0, 1).contiguous(), \
-                position_ids[:, 1, :].transpose(0, 1).contiguous()
+                                               position_ids[:, 1, :].transpose(0, 1).contiguous()
             q1, k1 = apply_rotary_pos_emb_index(q1, k1, cos, sin, position_ids)
             q2, k2 = apply_rotary_pos_emb_index(q2, k2, cos, sin, block_position_ids)
             query_layer = torch.concat([q1, q2], dim=(q1.ndim - 1))
@@ -1137,18 +1136,23 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
         logits_processor.append(InvalidScoreLogitsProcessor())
         gen_kwargs = {"max_length": max_length, "do_sample": do_sample, "top_p": top_p,
                       "temperature": temperature, "logits_processor": logits_processor, **kwargs}
+        if 'prompt_words' in gen_kwargs:
+            prompt_words = gen_kwargs['prompt_words']
+        else:
+            prompt_words = ['问', '答']
         if not history:
             prompt = query
         else:
             prompt = ""
             for i, (old_query, response) in enumerate(history):
-                prompt += "[Round {}]\n问：{}\n答：{}\n".format(i, old_query, response)
-            prompt += "[Round {}]\n问：{}\n答：".format(len(history), query)
+                prompt += "[Round {}]\n{}：{}\n{}：{}\n".format(i, prompt_words[0], old_query, prompt_words[1], response)
+            prompt += "[Round {}]\n{}：{}\n{}：".format(len(history), prompt_words[0], query, prompt_words[1])
         input_ids = tokenizer([prompt], return_tensors="pt", padding=True)
         input_ids = input_ids.to(self.device)
         for outputs in self.stream_generate(**input_ids, **gen_kwargs):
             outputs = outputs.tolist()[0][len(input_ids["input_ids"][0]):]
             response = tokenizer.decode(outputs)
+            print("stream_chat 输出是：", response)
             response = self.process_response(response)
             new_history = history + [(query, response)]
             yield response, new_history
@@ -1220,6 +1224,9 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
 
         unfinished_sequences = input_ids.new(input_ids.shape[0]).fill_(1)
         scores = None
+
+        cnt20002=0
+
         while True:
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
             # forward pass to get next token
@@ -1243,15 +1250,21 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
             else:
                 next_tokens = torch.argmax(probs, dim=-1)
 
+            # next token 20002
+            if next_tokens[0]==20002 and len(next_tokens)==1:
+                cnt20002+=1
             # update generated ids, model inputs, and length for next step
             input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
+            print(input_ids.shape,len(next_tokens[:, None]),next_tokens)
+            pre_length = input_ids.shape[1]
+            print(pre_length)
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
             )
             unfinished_sequences = unfinished_sequences.mul((sum(next_tokens != i for i in eos_token_id)).long())
 
             # stop when each sentence is finished, or if we exceed the maximum length
-            if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, scores):
+            if unfinished_sequences.max() == 0 or stopping_criteria(input_ids, scores) or cnt20002>=2:
                 break
             yield input_ids
 

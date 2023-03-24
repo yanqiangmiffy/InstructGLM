@@ -28,9 +28,11 @@ def main():
     dataset_df['target_len'] = dataset_df['target'].astype(str).map(len)
     print(dataset_df['input_len'].describe(percentiles=[0.25, 0.5, 0.75, 0.9]))
     print(dataset_df['target_len'].describe(percentiles=[0.25, 0.5, 0.75, 0.9]))
-
+    print(dataset['train'][:3])
     with open(args.save_path, 'w', encoding='utf-8') as f:
-        for example in tqdm(dataset['train'], desc="formatting.."):
+        for idx, example in tqdm(enumerate(dataset['train']), desc="formatting.."):
+            if idx < 3:
+                print(example)
             f.write(json.dumps(format_example(example), ensure_ascii=False) + '\n')
 
 
