@@ -193,6 +193,15 @@ python finetune.py \
 - 安装所需要的包：pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 - 显卡：2xA100 80G
 
+## 实验结果
+
+- alpaca数据微调效果
+
+![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/alpaca.png)
+
+- belle数据微淘效果
+
+![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/belle.png)
 ## Reference
 
 > 非常感谢以下作者的无私开源
