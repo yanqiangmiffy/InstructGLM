@@ -194,6 +194,15 @@ python finetune.py \
 - 显卡：2xA100 80G
 
 ## 实验结果
+- 训练好的lora权重
+
+```
+
+链接：https://pan.baidu.com/s/1c-zRSEUn4151YLoowPN4YA?pwd=hxbr
+提取码：hxbr
+--来自百度网盘超级会员V3的分享
+```
+
 
 - alpaca数据微调效果
 
