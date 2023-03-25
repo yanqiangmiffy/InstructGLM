@@ -8,7 +8,9 @@
 
 > instruction:52K 条指令中的每一条都是唯一的,答案由text-davinci-003模型生成得到的
 
-- [BELLE项目生成的中文指令数据](https://huggingface.co/datasets/BelleGroup/generated_train_0.5M_CN)
+- [BELLE项目生成的中文指令数据：0.5m&1m](https://huggingface.co/datasets/BelleGroup/generated_train_0.5M_CN)
+
+> 1百万数据：https://huggingface.co/datasets/BelleGroup/generated_train_1M_CN
 
 > 生成方式基于种子prompt，调用openai的api生成中文指令
 
