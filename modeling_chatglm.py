@@ -1129,6 +1129,7 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
     @torch.no_grad()
     def stream_chat(self, tokenizer, query: str, history: List[Tuple[str, str]] = None, max_length: int = 2048,
                     do_sample=True, top_p=0.7, temperature=0.95, logits_processor=None, **kwargs):
+        print(query)
         if history is None:
             history = []
         if logits_processor is None:
@@ -1152,7 +1153,7 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
         for outputs in self.stream_generate(**input_ids, **gen_kwargs):
             outputs = outputs.tolist()[0][len(input_ids["input_ids"][0]):]
             response = tokenizer.decode(outputs)
-            print("stream_chat 输出是：", response)
+            # print("stream_chat 输出是：", response)
             response = self.process_response(response)
             new_history = history + [(query, response)]
             yield response, new_history
@@ -1255,9 +1256,9 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
                 cnt20002+=1
             # update generated ids, model inputs, and length for next step
             input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-            print(input_ids.shape,len(next_tokens[:, None]),next_tokens)
+            # print(input_ids.shape,len(next_tokens[:, None]),next_tokens)
             pre_length = input_ids.shape[1]
-            print(pre_length)
+            # print(pre_length)
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder
             )

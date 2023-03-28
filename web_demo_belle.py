@@ -13,7 +13,7 @@ torch.set_default_tensor_type(torch.cuda.HalfTensor)
 model = ChatGLMForConditionalGeneration.from_pretrained("../../pretrained_models/chatglm-6b/",
                                                         trust_remote_code=True, device_map='auto')
 model.eval()
-peft_path = "output/alpaca/chatglm-lora.pt"
+peft_path = "output/belle/chatglm-lora.pt"
 peft_config = LoraConfig(
     task_type=TaskType.CAUSAL_LM, inference_mode=False,
     r=8,
@@ -65,4 +65,4 @@ with gr.Blocks() as demo:
             temperature = gr.Slider(0, 1, value=0.95, step=0.01, label="Temperature", interactive=True)
             button = gr.Button("Generate")
     button.click(predict, [txt, max_length, top_p, temperature, state], [state] + text_boxes)
-demo.queue().launch(server_name='0.0.0.0', server_port=8005, show_error=True, inbrowser=False)
+demo.queue().launch(server_name='0.0.0.0', server_port=8007, show_error=True, inbrowser=False)
