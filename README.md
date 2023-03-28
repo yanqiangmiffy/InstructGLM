@@ -197,6 +197,14 @@ python finetune.py \
 
 ## 实验结果
 - 训练好的lora权重
+```text
+└─output
+    ├─alpaca:基于52k微调的lora权重
+    ├─belle：:基于52k微调的lora权重+belle微调的权重52000steps
+    └─belle_raw：belle微调的权重104000steps
+
+```
+
 
 ```
 
