@@ -1174,7 +1174,8 @@ class ChatGLMForConditionalGeneration(ChatGLMPreTrainedModel):
             generation_config = self.generation_config
         generation_config = copy.deepcopy(generation_config)
         model_kwargs = generation_config.update(**kwargs)
-        bos_token_id, eos_token_id = generation_config.bos_token_id, generation_config.eos_token_id
+        # bos_token_id, eos_token_id = generation_config.bos_token_id, generation_config.eos_token_id
+        bos_token_id, eos_token_id = generation_config.bos_token_id, 20002
 
         if isinstance(eos_token_id, int):
             eos_token_id = [eos_token_id]

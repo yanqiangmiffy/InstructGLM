@@ -12,6 +12,7 @@ tokenizer = AutoTokenizer.from_pretrained("../../pretrained_models/chatglm-6b/",
 torch.set_default_tensor_type(torch.cuda.HalfTensor)
 model = ChatGLMForConditionalGeneration.from_pretrained("../../pretrained_models/chatglm-6b/",
                                                         trust_remote_code=True, device_map='auto')
+model.config.eos_token_id=20002
 model.eval()
 peft_path = "output/belle/chatglm-lora.pt"
 peft_config = LoraConfig(
