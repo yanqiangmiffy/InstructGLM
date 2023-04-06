@@ -220,7 +220,7 @@ python finetune.py \
 
 ![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/alpaca.png)
 
-- belle数据微淘效果
+- belle数据微调效果
 
 ![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/belle.png)
 ## Reference
