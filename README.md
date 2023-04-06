@@ -223,6 +223,10 @@ python finetune.py \
 - belle数据微调效果
 
 ![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/belle.png)
+
+## Todo
+* [ ] deepspeed支持
+
 ## Reference
 
 > 非常感谢以下作者的无私开源
@@ -236,3 +240,17 @@ python finetune.py \
 - https://github.com/carbonz0/alpaca-chinese-dataset
 - https://github.com/THUDM/ChatGLM-6B
 - https://huggingface.co/THUDM/chatglm-6b
+
+## Bugs
+
+- gcc版本升级
+```
+yum install centos-release-scl -y
+yum install devtoolset-9 -y
+
+#临时覆盖系统原有的gcc引用
+scl enable devtoolset-9 bash
+
+# 查看gcc版本
+gcc -v
+```
