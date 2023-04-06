@@ -226,6 +226,7 @@ python finetune.py \
 
 ## Todo
 * [ ] deepspeed支持
+* [ ] 模型评估
 
 ## Reference
 
