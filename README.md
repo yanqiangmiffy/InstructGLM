@@ -1,7 +1,14 @@
 # InstructGLM
 
 > 基于ChatGLM-6B+LoRA在指令数据集上进行微调
+> 
+> 
+**本项目主要内容：**
 
+- 🚀 针对ChatGLM-6B模型基于LoRA技术进行微调
+- 🚀 开源了基于alpaca和belle数据指令微调后的lora权重，详情可见[output](https://github.com/yanqiangmiffy/InstructGLM/tree/master/output)
+- 🚀 基于deepspeed支持多卡微调，具体设置可见[微调3:基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
+- 🚀 基于gradio的demo完善
 ## 开源指令数据集
 
 - [斯坦福52k英文指令数据](https://github.com/tatsu-lab/stanford_alpaca)
@@ -70,7 +77,7 @@ python tokenize_dataset_rows.py \
 ### 2. 模型训练
 
 ```shell
-python finetune.py \
+python train_lora.py \
     --dataset_path data/alpaca \
     --lora_rank 8 \
     --per_device_train_batch_size 2 \
@@ -157,7 +164,7 @@ python tokenize_dataset_rows.py \
 - 基于原始chatglm-6b训练
 
 ```shell
-python finetune.py \
+python train_lora.py \
     --dataset_path data/belle \
     --lora_rank 8 \
     --per_device_train_batch_size 2 \
@@ -175,7 +182,7 @@ python finetune.py \
 - 基于alpaca的lora继续微调
 
 ```shell
-python finetune.py \
+python train_lora.py \
     --dataset_path data/belle \
     --lora_rank 8 \
     --per_device_train_batch_size 8 \
@@ -190,6 +197,13 @@ python finetune.py \
     --output_dir output/belle \
     --is_resume True \
     --resume_path output/alpaca/chatglm-lora.pt
+```
+
+## 微调3:基于DeepSpeed进行Lora微调
+支持多卡+zero方案，训练速度可提高8倍左右
+
+```shell
+accelerate launch --config_file config/default_config.yaml train_new.py
 ```
 
 ## 实验环境
@@ -241,6 +255,7 @@ python finetune.py \
 - https://github.com/carbonz0/alpaca-chinese-dataset
 - https://github.com/THUDM/ChatGLM-6B
 - https://huggingface.co/THUDM/chatglm-6b
+- https://github.com/lich99/ChatGLM-finetune-LoRA
 
 ## Bugs
 

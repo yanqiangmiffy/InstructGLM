@@ -8,7 +8,8 @@ transformers==4.27.1
 icetk
 cpm_kernels==1.0.11
 torch>=1.13.1
-
-# 
+#
 datasets==2.10.1
 git+https://ghproxy.com/https://github.com/huggingface/peft.git  # 最新版本 >=0.3.0.dev0
+
+loralib
