@@ -7,7 +7,7 @@
 
 - 🚀 针对ChatGLM-6B模型基于LoRA技术进行微调
 - 🚀 开源了基于alpaca和belle数据指令微调后的lora权重，详情可见[output](https://github.com/yanqiangmiffy/InstructGLM/tree/master/output)
-- 🚀 基于deepspeed支持多卡微调，具体设置可见[微调3:基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
+- 🚀 基于deepspeed支持多卡微调，具体设置可见 [微调3:基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
 - 🚀 基于gradio的demo完善
 ## 开源指令数据集
 
