@@ -5,7 +5,7 @@
 > 
 **本项目主要内容：**
 - 🚀 2023/4/9 发布了基于[100万条由BELLE项目生成的中文指令数据](https://huggingface.co/datasets/BelleGroup/train_1M_CN)的Lora权重，具体可见`output/belle/chatglm-lora.pt`
-- 🚀 2023/4/8 基于deepspeed支持多卡微调，具体设置可见 [微调3 基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
+- 🚀 2023/4/8 基于deepspeed支持多卡微调，速度相比单卡提升8-9倍具体设置可见 [微调3 基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
 - 🚀 2023/3/28 开源了基于alpaca和belle数据指令微调后的lora权重，详情可见[output](https://github.com/yanqiangmiffy/InstructGLM/tree/master/output)
 - 🚀 2023/3/25 针对ChatGLM-6B模型基于LoRA技术进行微调
 - 🚀 2023/3/23 基于gradio的demo完善
