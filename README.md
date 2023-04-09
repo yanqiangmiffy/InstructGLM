@@ -4,11 +4,16 @@
 > 
 > 
 **本项目主要内容：**
-
+- 🚀 2023/4/9 发布了基于[100万条由BELLE项目生成的中文指令数据](https://huggingface.co/datasets/BelleGroup/train_1M_CN)的Lora权重，具体可见`output/belle/chatglm-lora.pt`
 - 🚀 2023/4/8 基于deepspeed支持多卡微调，具体设置可见 [微调3 基于DeepSpeed进行Lora微调](#微调3:基于DeepSpeed进行Lora微调)
-- 🚀 针对ChatGLM-6B模型基于LoRA技术进行微调
-- 🚀 开源了基于alpaca和belle数据指令微调后的lora权重，详情可见[output](https://github.com/yanqiangmiffy/InstructGLM/tree/master/output)
-- 🚀 基于gradio的demo完善
+- 🚀 2023/3/28 开源了基于alpaca和belle数据指令微调后的lora权重，详情可见[output](https://github.com/yanqiangmiffy/InstructGLM/tree/master/output)
+- 🚀 2023/3/25 针对ChatGLM-6B模型基于LoRA技术进行微调
+- 🚀 2023/3/23 基于gradio的demo完善
+
+## Todo
+* [x] deepspeed支持
+* [ ] 模型评估,如何评估微调后的模型效果
+
 ## 开源指令数据集
 
 - [斯坦福52k英文指令数据](https://github.com/tatsu-lab/stanford_alpaca)
@@ -232,15 +237,12 @@ accelerate launch --config_file config/default_config.yaml train_new.py
 
 - alpaca数据微调效果
 
-![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/alpaca.png)
+![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/alpaca_lora.png)
 
 - belle数据微调效果
 
-![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/belle.png)
+![](https://raw.githubusercontent.com/yanqiangmiffy/InstructGLM/master/examples/belle_lora.jpg)
 
-## Todo
-* [ ] deepspeed支持
-* [ ] 模型评估
 
 ## Reference
 
