@@ -11,8 +11,8 @@
 """
 
 from transformers import AutoTokenizer, AutoModel
-tokenizer = AutoTokenizer.from_pretrained("/home/searchgpt/pretrained_models/chatglm-6b/", trust_remote_code=True)
-model = AutoModel.from_pretrained("/home/searchgpt/pretrained_models/chatglm-6b/", trust_remote_code=True).half().cuda()
+tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
+model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).half().cuda()
 response, history = model.chat(tokenizer, "生成一个人野营旅行可能需要的十件物品的清单", history=[])
 print(response)
 # response, history = model.chat(tokenizer, "晚上睡不着应该怎么办", history=history)

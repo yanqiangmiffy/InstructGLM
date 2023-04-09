@@ -3,12 +3,12 @@ from peft import get_peft_model, LoraConfig, TaskType
 from transformers import AutoTokenizer
 
 from cover_belle2jsonl import format_example
-from modeling_chatglm import ChatGLMForConditionalGeneration
+from transformers import AutoModel
 
 torch.set_default_tensor_type(torch.cuda.HalfTensor)
-model = ChatGLMForConditionalGeneration.from_pretrained("../../pretrained_models/chatglm-6b", trust_remote_code=True,
+model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True,
                                                         device_map='auto')
-tokenizer = AutoTokenizer.from_pretrained("../../pretrained_models/chatglm-6b", trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
 
 peft_path = "output/belle/chatglm-lora.pt"
 
@@ -21,7 +21,6 @@ peft_config = LoraConfig(
 model = get_peft_model(model, peft_config)
 model.load_state_dict(torch.load(peft_path), strict=False)
 torch.set_default_tensor_type(torch.cuda.FloatTensor)
-
 answers = []
 # instructions = json.load(open("data/belle_data.jsonl"))
 instructions = [

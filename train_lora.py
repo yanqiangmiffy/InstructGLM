@@ -9,7 +9,7 @@ from transformers import AutoTokenizer
 from transformers import Trainer, HfArgumentParser
 from transformers import TrainingArguments
 
-from modeling_chatglm import ChatGLMForConditionalGeneration
+from old_files.modeling_chatglm import ChatGLMForConditionalGeneration
 
 tokenizer = AutoTokenizer.from_pretrained("../../pretrained_models/chatglm-6b", trust_remote_code=True)
 
