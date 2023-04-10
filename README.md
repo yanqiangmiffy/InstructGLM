@@ -208,7 +208,7 @@ python train_lora.py \
 支持多卡+zero方案，训练速度可提高8倍左右
 
 ```shell
-accelerate launch --config_file config/default_config.yaml train_new.py
+accelerate launch --config_file config/default_config.yaml train_deepspeed.py
 ```
 
 ## 实验环境
